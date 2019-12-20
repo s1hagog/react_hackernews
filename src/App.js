@@ -1,7 +1,11 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
+// import logo from './logo.svg';
 import './App.css';
-import Button from './components/Button';
+
+
+//IMPORT COMPONENTS
+import Search from './components/Search'
+import Table from './components/Table'
 
 //Define list of items
 
@@ -33,7 +37,7 @@ const list = [
 // }
 
 //ES6
-const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
+export const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
 
 
 
@@ -86,42 +90,42 @@ class App extends Component {
 }
 
 
-class Search extends Component {
-  render() {
-    const {value, onChange} = this.props;
-    return(
-      <form>
-        <input 
-          type="text"
-          onChange={onChange}
-          value={value}
-        />
-      </form>
-    )
-  }
-}
+// class Search extends Component {
+//   render() {
+//     const {value, onChange} = this.props;
+//     return(
+//       <form>
+//         <input 
+//           type="text"
+//           onChange={onChange}
+//           value={value}
+//         />
+//       </form>
+//     )
+//   }
+// }
 
-class Table extends Component {
-  render() {
-    const {list, pattern, onDismiss} = this.props;
-    return (
-      <div>
-        {list.filter(isSearched(pattern)).map(item =>
-          <div key={item.objectID}>
-            <span><a href={item.url}>{item.title}</a></span>
-            <span>{item.author}</span>
-            <span>{item.num_comments}</span>
-            <span>{item.points}</span>
-            <span>
-              <Button onClick={() => onDismiss(item.objectID)}>
-                Dismiss
-              </Button>
-            </span>
-          </div>
-        )}
-      </div>
-    )
-  }
-}
+// class Table extends Component {
+//   render() {
+//     const {list, pattern, onDismiss} = this.props;
+//     return (
+//       <div>
+//         {list.filter(isSearched(pattern)).map(item =>
+//           <div key={item.objectID}>
+//             <span><a href={item.url}>{item.title}</a></span>
+//             <span>{item.author}</span>
+//             <span>{item.num_comments}</span>
+//             <span>{item.points}</span>
+//             <span>
+//               <Button onClick={() => onDismiss(item.objectID)}>
+//                 Dismiss
+//               </Button>
+//             </span>
+//           </div>
+//         )}
+//       </div>
+//     )
+//   }
+// }
 
 export default App;
