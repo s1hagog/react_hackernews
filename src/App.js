@@ -19,7 +19,7 @@ const list = [
     author: 'Dan Abramov, ANdrew Clark',
     num_comments: 2,
     points: 5,
-    objectID: 0,
+    objectID: 1,
   }
 ]
 
