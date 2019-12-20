@@ -24,6 +24,16 @@ const list = [
 ]
 
 
+//ES5
+// function isSearched(searchTerm){
+//   return function (item){
+//     return item.title.toLowerCase().includes(searchTerm.toLowerCase());
+//   }
+// }
+
+//ES6
+const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
+
 
 
 
@@ -34,10 +44,11 @@ class App extends Component {
 
     this.state = {
       list,
-      lorem: 'Ullamco exercitation pariatur id fugiat pariatur ad cillum consectetur eiusmod minim.'
+      searchTerm: '',
     }
 
     this.onDismiss = this.onDismiss.bind(this);
+    this.onSearchChange = this.onSearchChange.bind(this);
   }
 
   onDismiss(id){
@@ -45,12 +56,27 @@ class App extends Component {
     this.setState({list: updatedList});
   }
 
+  onSearchChange(e){
+    this.setState({searchTerm: e.target.value});
+    // console.log(this.state.searchTerm);
+  }
+
+  
+
 
   render(){
+
+    const {searchTerm, list} = this.state;
     
     return(
       <div className="App">
-        {this.state.list.map(item =>
+        <form>
+          <input 
+            type="text"
+            onChange={this.onSearchChange}
+          />
+        </form>
+        {list.filter(isSearched(searchTerm)).map(item =>
           <div key={item.objectID}>
             <span><a href={item.url}>{item.title}</a></span>
             <span>{item.author}</span>
