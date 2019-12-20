@@ -29,15 +29,19 @@ const list = [
 
 class App extends Component {
   render(){
-    const helloWorld = 'Hello Sooka shlyushka';
-    const lorem = 'Dolor elit Lorem culpa reprehenderit ad enim cillum deserunt ad.';
-
-    const person = {firstName: 'alex', lastName: 'moshak'};
+    
     return(
       <div className="App">
-        <h2>{helloWorld}</h2>
-        <h3>{lorem}</h3>
-        <span>The author is {person.firstName} and {person.lastName}</span>
+        {list.map( (item) => {
+          return (
+          <div key={item.objectID}>
+            <span><a href={item.url}>{item.title}</a></span>
+            <span>{item.author}</span>
+            <span>{item.num_comments}</span>
+            <span>{item.points}</span>
+          </div>
+          );
+          })}
       </div>
     )
   }
