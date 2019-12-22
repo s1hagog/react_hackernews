@@ -7,26 +7,35 @@ import './App.css';
 import Search from './components/Search'
 import Table from './components/Table'
 
+
+//Define url for API
+
+const DEFAULT_QUERY = '';
+
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
+
+
 //Define list of items
 
-
-const list = [
-  {
-    title: 'React',
-    url: 'https://reactjs.org',
-    author: 'Jordan Walke',
-    num_comments: 3,
-    points: 4,
-    objectID: 0,
-  },{
-    title: 'Redux',
-    url: 'https://redux.js.org',
-    author: 'Dan Abramov, ANdrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 1,
-  }
-]
+// const list = [
+//   {
+//     title: 'React',
+//     url: 'https://reactjs.org',
+//     author: 'Jordan Walke',
+//     num_comments: 3,
+//     points: 4,
+//     objectID: 0,
+//   },{
+//     title: 'Redux',
+//     url: 'https://redux.js.org',
+//     author: 'Dan Abramov, ANdrew Clark',
+//     num_comments: 2,
+//     points: 5,
+//     objectID: 1,
+//   }
+// ]
 
 
 //ES5
@@ -40,25 +49,30 @@ const list = [
 export const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
 
 
-
-
 class App extends Component {
 
   constructor(props){
     super(props);
 
     this.state = {
-      list,
-      searchTerm: '',
+      result: null,
+      searchTerm: DEFAULT_QUERY,
     }
 
+    this.setSearchTopStories = this.setSearchTopStories.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
   }
 
+  setSearchTopStories(result){
+    this.setState({result});
+  }
+
   onDismiss(id){
-    const updatedList = this.state.list.filter(item => item.objectID !== id);
-    this.setState({list: updatedList});
+    const updatedHits = this.state.result.hits.filter(item => item.objectID !== id);
+    const result = {...this.state.result, hits: updatedHits}
+    this.setState({result});
+    console.log(result);
   }
 
   onSearchChange(e){
@@ -66,12 +80,23 @@ class App extends Component {
     // console.log(this.state.searchTerm);
   }
 
+
+  componentDidMount() {
+    const {searchTerm} = this.setState;
+
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopStories(result))
+      .catch(error => error);
+  }
   
 
 
   render(){
 
-    const {searchTerm, list} = this.state;
+    const {searchTerm, result} = this.state;
+
+    if(!result) {return null;}
     
     return(
       <div className="page">
@@ -82,7 +107,8 @@ class App extends Component {
           />
         </div>
           <Table 
-            list={list}
+            list={result.hits
+            }
             pattern={searchTerm}
             onDismiss={this.onDismiss}
           />
