@@ -6,15 +6,19 @@ import './App.css';
 //IMPORT COMPONENTS
 import Search from './components/Search'
 import Table from './components/Table'
+import Button from './components/Button';
 
 
 //Define url for API
 
-const DEFAULT_QUERY = '';
+const DEFAULT_QUERY = 'redux';
+const DEFAULT_HPP = '10';
 
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage='
 
 
 //Define list of items
@@ -46,7 +50,7 @@ const PARAM_SEARCH = 'query=';
 // }
 
 //ES6
-export const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
+//export const isSearched = searchTerm => item => item.title.toLowerCase().includes(searchTerm.toLowerCase());
 
 
 class App extends Component {
@@ -55,24 +59,82 @@ class App extends Component {
     super(props);
 
     this.state = {
-      result: null,
+      results: null,
+      searchKey: '',
       searchTerm: DEFAULT_QUERY,
     }
 
+    this.needsToSearchTopStrories = this.needsToSearchTopStrories.bind(this);
     this.setSearchTopStories = this.setSearchTopStories.bind(this);
+    this.fetchSearchTopStories = this.fetchSearchTopStories.bind(this);
     this.onDismiss = this.onDismiss.bind(this);
+    this.onSearchSubmit = this.onSearchSubmit.bind(this);
     this.onSearchChange = this.onSearchChange.bind(this);
   }
 
+  needsToSearchTopStrories(searchTerm) {
+    return !this.state.results[searchTerm];
+  }
+
   setSearchTopStories(result){
-    this.setState({result});
+    const {hits, page} = result;
+    const {searchKey, results} = this.state;
+
+    const oldHits = results && results[searchKey]
+      ? results[searchKey].hits
+      : [];
+
+    
+    const updatedHits = [
+      ...oldHits,
+      ...hits
+    ];
+
+    this.setState({
+      results: {
+        ...results,
+        [searchKey]: {hits: updatedHits, page}
+      }
+    });
+  }
+
+  fetchSearchTopStories(searchTerm, page=0) {
+    console.log("Searching!");
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopStories(result))
+      .catch(error => error);
+  }
+
+  onSearchSubmit(e){
+    const {searchTerm} = this.state;
+    this.setState({searchKey: searchTerm});
+
+    if (this.needsToSearchTopStrories(searchTerm)){
+      this.fetchSearchTopStories(searchTerm);
+    }else{
+      console.log('item is cached, not searching');
+    }
+
+
+    e.preventDefault();
   }
 
   onDismiss(id){
-    const updatedHits = this.state.result.hits.filter(item => item.objectID !== id);
-    const result = {...this.state.result, hits: updatedHits}
-    this.setState({result});
-    console.log(result);
+    const {searchKey, results} = this.state;
+    const {hits, page} = results[searchKey];
+
+    const isNotId = item => item.objectID !== id;
+    
+
+    const updatedHits = hits.filter(isNotId);
+
+    this.setState({
+      results: {
+        ...results,
+        [searchKey] : { hits: updatedHits, page}
+      }
+    });
   }
 
   onSearchChange(e){
@@ -82,21 +144,27 @@ class App extends Component {
 
 
   componentDidMount() {
-    const {searchTerm} = this.setState;
-
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
-      .then(response => response.json())
-      .then(result => this.setSearchTopStories(result))
-      .catch(error => error);
+    const {searchTerm} = this.state;
+    this.setState({searchKey: searchTerm});
+    this.fetchSearchTopStories(searchTerm);
   }
   
 
 
   render(){
 
-    const {searchTerm, result} = this.state;
-
-    if(!result) {return null;}
+    const {searchTerm, results, searchKey} = this.state;
+    const page = (
+      results && 
+      results[searchKey] &&
+      results[searchKey].page
+    ) || 0;
+    const list = (
+      results &&
+      results[searchKey] &&
+      results[searchKey].hits
+    ) || [];
+    
     
     return(
       <div className="page">
@@ -104,14 +172,21 @@ class App extends Component {
           <Search
             value={searchTerm}
             onChange={this.onSearchChange}
-          />
+            onSubmit={this.onSearchSubmit}
+          >Search</Search>
         </div>
+        { results &&
           <Table 
-            list={result.hits
+            list={list
             }
-            pattern={searchTerm}
             onDismiss={this.onDismiss}
           />
+        }
+        <div className="interactions">
+          <Button onClick={() => this.fetchSearchTopStories(searchKey, page+1)}>
+            More
+          </Button>
+        </div>
       </div>
     )
   }
