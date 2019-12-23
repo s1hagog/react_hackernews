@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 // import logo from './logo.svg';
 import './App.css';
 
@@ -62,6 +63,7 @@ class App extends Component {
       results: null,
       searchKey: '',
       searchTerm: DEFAULT_QUERY,
+      error: null,
     }
 
     this.needsToSearchTopStrories = this.needsToSearchTopStrories.bind(this);
@@ -99,11 +101,9 @@ class App extends Component {
   }
 
   fetchSearchTopStories(searchTerm, page=0) {
-    console.log("Searching!");
-    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
-      .then(response => response.json())
-      .then(result => this.setSearchTopStories(result))
-      .catch(error => error);
+    axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+      .then(result => this.setSearchTopStories(result.data))
+      .catch(error => this.setState({error}));
   }
 
   onSearchSubmit(e){
@@ -112,8 +112,6 @@ class App extends Component {
 
     if (this.needsToSearchTopStrories(searchTerm)){
       this.fetchSearchTopStories(searchTerm);
-    }else{
-      console.log('item is cached, not searching');
     }
 
 
@@ -153,7 +151,7 @@ class App extends Component {
 
   render(){
 
-    const {searchTerm, results, searchKey} = this.state;
+    const {searchTerm, results, searchKey, error} = this.state;
     const page = (
       results && 
       results[searchKey] &&
@@ -165,7 +163,6 @@ class App extends Component {
       results[searchKey].hits
     ) || [];
     
-    
     return(
       <div className="page">
         <div className="interactions">
@@ -175,12 +172,15 @@ class App extends Component {
             onSubmit={this.onSearchSubmit}
           >Search</Search>
         </div>
-        { results &&
-          <Table 
-            list={list
-            }
-            onDismiss={this.onDismiss}
-          />
+        {error
+          ? <div className="interactions">
+            <p>Something went wrong</p>
+          </div>
+          : <Table 
+              list={list
+              }
+              onDismiss={this.onDismiss}
+            />      
         }
         <div className="interactions">
           <Button onClick={() => this.fetchSearchTopStories(searchKey, page+1)}>
